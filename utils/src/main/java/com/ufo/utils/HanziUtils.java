@@ -1,96 +1,74 @@
 package com.ufo.utils;
 
-
+import java.io.UnsupportedEncodingException;
 
 /**
  * Created by tjpld on 16/8/30.
  */
 public final class HanziUtils {
 
-    public static String convertToPinYin(String str) {
-        String tempStr = "";
+
+    private final static int[] li_SecPosValue = {1601, 1637, 1833, 2078, 2274,
+            2302, 2433, 2594, 2787, 3106, 3212, 3472, 3635, 3722, 3730, 3858,
+            4027, 4086, 4390, 4558, 4684, 4925, 5249, 5590};
+    private final static String[] lc_FirstLetter = {"a", "b", "c", "d", "e",
+            "f", "g", "h", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s",
+            "t", "w", "x", "y", "z"};
+
+
+    public static String getAllFirstLetter(String str) {
+        if (str == null || str.trim().length() == 0) {
+            return "";
+        }
+
+        String _str = "";
         for (int i = 0; i < str.length(); i++) {
-            char c = str.charAt(i);
-            if (c >= 33 && c <= 126) {// 字母和符号原样保留
-                tempStr += String.valueOf(c);
-            } else {// 累加拼音声母
-                tempStr += getPYChar(String.valueOf(c));
+            _str = _str + getFirstLetter(str.substring(i, i + 1));
+        }
+
+        return _str;
+    }
+
+
+    public static String getFirstLetter(String chinese) {
+        if (chinese == null || chinese.trim().length() == 0) {
+            return "";
+        }
+        chinese = conversionStr(chinese, "GB2312", "ISO8859-1");
+
+        if (chinese.length() > 1) // 判断是不是汉字
+        {
+            int li_SectorCode = (int) chinese.charAt(0); // 汉字区码
+            int li_PositionCode = (int) chinese.charAt(1); // 汉字位码
+            li_SectorCode = li_SectorCode - 160;
+            li_PositionCode = li_PositionCode - 160;
+            int li_SecPosCode = li_SectorCode * 100 + li_PositionCode; // 汉字区位码
+            if (li_SecPosCode > 1600 && li_SecPosCode < 5590) {
+                for (int i = 0; i < 23; i++) {
+                    if (li_SecPosCode >= li_SecPosValue[i]
+                            && li_SecPosCode < li_SecPosValue[i + 1]) {
+                        chinese = lc_FirstLetter[i];
+                        break;
+                    }
+                }
+            } else // 非汉字字符,如图形符号或ASCII码
+            {
+                chinese = conversionStr(chinese, "ISO8859-1", "GB2312");
+                chinese = chinese.substring(0, 1);
             }
         }
-        return tempStr;
+
+        return chinese;
     }
 
 
-    public static String convertToPinYinAndClear(String str) {
-        return convertToPinYin(str).replace("*", "");
-    }
-
-
-    public static String convertToPinYinAndClearAll(String str) {
-        String str1 =  convertToPinYin(str).replace("*", "");
-        StringBuilder sb = new StringBuilder();
-        for(char c : str1.toCharArray()){
-            if((c>=48 && c<= 57) || (c>=65 && c<= 90)   || (c>=97 && c<= 122)){
-                sb.append(c);
-            }
+    private static String conversionStr(String str, String charsetName, String toCharsetName) {
+        try {
+            str = new String(str.getBytes(charsetName), toCharsetName);
+        } catch (UnsupportedEncodingException ex) {
+            System.out.println("字符串编码转换异常：" + ex.getMessage());
         }
-        return sb.toString();
+        return str;
     }
 
-
-    private static String getPYChar(String c) {
-        byte[] array = new byte[2];
-        array = String.valueOf(c).getBytes();
-        int i = (short) (array[0] - '\0' + 256) * 256
-                + ((short) (array[1] - '\0' + 256));
-        if (i < 0xB0A1)
-            return "*";
-        if (i < 0xB0C5)
-            return "a";
-        if (i < 0xB2C1)
-            return "b";
-        if (i < 0xB4EE)
-            return "c";
-        if (i < 0xB6EA)
-            return "d";
-        if (i < 0xB7A2)
-            return "e";
-        if (i < 0xB8C1)
-            return "f";
-        if (i < 0xB9FE)
-            return "g";
-        if (i < 0xBBF7)
-            return "h";
-        if (i < 0xBFA6)
-            return "j";
-        if (i < 0xC0AC)
-            return "k";
-        if (i < 0xC2E8)
-            return "l";
-        if (i < 0xC4C3)
-            return "m";
-        if (i < 0xC5B6)
-            return "n";
-        if (i < 0xC5BE)
-            return "o";
-        if (i < 0xC6DA)
-            return "p";
-        if (i < 0xC8BB)
-            return "q";
-        if (i < 0xC8F6)
-            return "r";
-        if (i < 0xCBFA)
-            return "s";
-        if (i < 0xCDDA)
-            return "t";
-        if (i < 0xCEF4)
-            return "w";
-        if (i < 0xD1B9)
-            return "x";
-        if (i < 0xD4D1)
-            return "y";
-        if (i < 0xD7FA)
-            return "z";
-        return "*";
-    }
 }

@@ -3,7 +3,7 @@ package com.ufo.utils;
 /**
  * Created by tjpld on 16/8/30.
  */
-public class MimeType {
+public final class MimeType {
 
     public static String APPLICATION_ATOM_XML = "application/atom+xml";
     public static String APPLICATION_JSON = "application/json";
